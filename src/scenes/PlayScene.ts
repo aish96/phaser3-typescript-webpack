@@ -1,46 +1,95 @@
-class TestScene extends Phaser.Scene {
-	player: Phaser.GameObjects.Sprite;
-	cursors: any;
+import { debugDraw } from '../utils/debug';
+import * as Phaser from 'phaser';
+import { Direction, Player } from '../Player';
+import { GridPhysics } from '../GridPhysics';
+import { GridControls } from '../GridControl';
 
-	constructor() {
-    super({
-			key: 'TestScene'
-		});
-	}
-	
-	preload() {
-		this.load.tilemapTiledJSON('map', '/assets/tilemaps/desert.json');
-		this.load.image('Desert', '/assets/tilemaps/tmw_desert_spacing.png');
-		this.load.image('player', '/assets/sprites/mushroom.png');
-	}
+export default class TestScene extends Phaser.Scene {
+    previousDirection: Direction | null = null;
+    static readonly TILE_SIZE = 32;
+    player!: Phaser.Physics.Arcade.Sprite;
+    cursors: any;
+    playerGroup!: Phaser.GameObjects.Container;
+    gridPhysics: any;
+    gridControls: any;
+    constructor() {
+        super({
+            key: 'TestScene'
+        });
+    }
 
-	create() {
-		var map:Phaser.Tilemaps.Tilemap = this.make.tilemap({ key: 'map' });
-		var tileset:Phaser.Tilemaps.Tileset = map.addTilesetImage('Desert');
-		var layer:Phaser.Tilemaps.StaticTilemapLayer = map.createStaticLayer(0, tileset, 0, 0);
+    preload() {
+        this.load.image('tiles', '/assets/tilemaps/dungeon.png');
+        this.load.tilemapTiledJSON('dungeon', '/assets/dungeons/dungeon.json');
+        this.load.image('player', '/assets/sprites/addition.png');
+        this.load.image('box', '/assets/tiles/box.jpg');
+    }
 
-		this.player = this.add.sprite(100, 100, 'player');
-		this.cursors = this.input.keyboard.createCursorKeys();
+    create() {
+        var map: Phaser.Tilemaps.Tilemap = this.make.tilemap({ key: 'dungeon' });
+        var tileset = map.addTilesetImage('dungeon', 'tiles');
+        map.createLayer(1, tileset!, 0, 0);
+        let layer = map.createLayer(0, tileset!, 0, 0);
+        layer!.setCollisionByProperty({ collides: true });
+        debugDraw(layer!, this);
 
-		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.cameras.main.startFollow(this.player, false);
-	}
+        this.player = this.physics.add.sprite(0, 0, 'player');
+        this.player.setOrigin(0.5, 1);
 
-	update(time: number, delta:number) {
-		this.player.angle += 1;
-		if (this.cursors.left.isDown) {
-			this.player.x -= 5;
-		}
-		if (this.cursors.right.isDown) {
-			this.player.x += 5;
-		}
-		if (this.cursors.down.isDown) {
-			this.player.y += 5;
-		}
-		if (this.cursors.up.isDown) {
-			this.player.y -= 5;
-		}
-	}
+        let box = this.physics.add.sprite(120, 230, 'box');
+        box.setOrigin(0.5, 1);
+        this.playerGroup = this.add.container(0, 0);
+        this.playerGroup.add(this.player);
+        // this.playerGroup.setSize(this.player.width + box.width, this.player.height + box.height);
+        this.physics.add.collider(this.player, box, this.addSpriteToPlayer.bind(this, box));
+        this.physics.world.enable(this.playerGroup);
+
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        this.cameras.main.startFollow(this.playerGroup, false);
+        // layer!.setCollision([1, 2, 3, 33, 34, 35, 224, 225, 226, 227, 228, 229, 256, 257, 258, 259, 260, 290, 292]);
+        // this.physics.add.collider(this.playerGroup, layer, () => console.log('collide'), noop, this);
+        // (this.playerGroup.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(true);
+        const player = new Player(this.playerGroup, new Phaser.Math.Vector2(3, 0));
+
+        this.gridPhysics = new GridPhysics(player, map);
+        this.gridControls = new GridControls(this.input, this.gridPhysics);
+    }
+
+    addSpriteToPlayer(box: Phaser.GameObjects.Image) {
+        this.playerGroup.add(box);
+        let xPos, yPos;
+        if (this.previousDirection === Direction.LEFT) {
+            xPos = this.player.x - TestScene.TILE_SIZE;
+            yPos = this.player.y;
+        } else if (this.previousDirection === Direction.RIGHT) {
+            xPos = this.player.x + TestScene.TILE_SIZE;
+            yPos = this.player.y;
+        } else if (this.previousDirection === Direction.UP) {
+            xPos = this.player.x;
+            yPos = this.player.y - TestScene.TILE_SIZE;
+        } else if (this.previousDirection === Direction.DOWN) {
+            xPos = this.player.x;
+            yPos = this.player.y + TestScene.TILE_SIZE;
+        }
+        box.setPosition(xPos, yPos);
+    }
+
+    update(time: number, delta: number) {
+        if (this.cursors.left.isDown) {
+            this.previousDirection = Direction.LEFT;
+        }
+        if (this.cursors.right.isDown) {
+            this.previousDirection = Direction.RIGHT;
+        }
+        if (this.cursors.down.isDown) {
+            this.previousDirection = Direction.DOWN;
+        }
+        if (this.cursors.up.isDown) {
+            this.previousDirection = Direction.UP;
+        }
+        this.gridControls.update();
+        this.gridPhysics.update(delta);
+    }
 }
-
-export default TestScene;

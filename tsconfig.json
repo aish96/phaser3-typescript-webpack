@@ -1,14 +1,17 @@
 {
-	"compilerOptions": {
-		"target": "es5",
-		"module": "commonjs",
-		"sourceMap": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true
-	},
-	
-	"files": [
-		"src/phaser.d.ts",
-		"src/main.ts"
-	]
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "es6",
+        "strict": true,
+        "noImplicitAny": false,
+        "noEmit": true,
+        "allowJs": true,
+        "jsx": "preserve",
+        "importHelpers": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "include": ["src/**/*"]
 }
