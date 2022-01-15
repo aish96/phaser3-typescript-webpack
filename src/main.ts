@@ -1,12 +1,10 @@
-import React from 'react';
-
 import * as Phaser from 'phaser';
 
 import TestScene from './scenes/PlayScene';
 
 export const game = new Phaser.Game({
     type: Phaser.AUTO,
-    parent: 'content',
+    parent: 'phaser',
     width: 1280,
     height: 720,
     physics: {

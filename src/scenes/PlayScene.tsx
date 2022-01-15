@@ -3,7 +3,8 @@ import * as Phaser from 'phaser';
 import { Direction, Player } from '../Player';
 import { GridPhysics } from '../GridPhysics';
 import { GridControls } from '../GridControl';
-
+import React from 'react';
+import { render } from 'react-dom';
 export default class TestScene extends Phaser.Scene {
     previousDirection: Direction | null = null;
     static readonly TILE_SIZE = 32;
@@ -31,7 +32,7 @@ export default class TestScene extends Phaser.Scene {
         map.createLayer(1, tileset!, 0, 0);
         let layer = map.createLayer(0, tileset!, 0, 0);
         layer!.setCollisionByProperty({ collides: true });
-        debugDraw(layer!, this);
+        // debugDraw(layer!, this);
 
         this.player = this.physics.add.sprite(0, 0, 'player');
         this.player.setOrigin(0.5, 1);
@@ -55,6 +56,21 @@ export default class TestScene extends Phaser.Scene {
 
         this.gridPhysics = new GridPhysics(player, map);
         this.gridControls = new GridControls(this.input, this.gridPhysics);
+
+        const App = () => <div style={{ textAlign: 'center', zIndex: 1000 }}>hello react</div>;
+
+        // creating the react dom element
+        let reactDiv = document.getElementById('react');
+        if (!reactDiv) throw new Error('#react not found');
+        reactDiv.addEventListener('mousedown', (event: Event) => {
+            // if the click is not on the root react div, we call stopPropagation()
+            let target = event.target as HTMLElement;
+            if (target.id !== 'react') event.stopPropagation();
+        });
+
+        // @ts-ignore
+        let react = this.add.dom(0, 0, reactDiv);
+        render(<App />, react.node);
     }
 
     addSpriteToPlayer(box: Phaser.GameObjects.Image) {

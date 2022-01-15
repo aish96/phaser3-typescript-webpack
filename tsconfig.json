@@ -1,17 +1,16 @@
 {
     "compilerOptions": {
-        "target": "es2016",
-        "module": "es6",
+        "target": "es5",
+        "module": "commonjs",
         "strict": true,
         "noImplicitAny": false,
-        "noEmit": true,
-        "allowJs": true,
-        "jsx": "preserve",
-        "importHelpers": true,
-        "moduleResolution": "node",
-        "experimentalDecorators": true,
         "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true
+        "allowUnreachableCode": false,
+        "sourceMap": true,
+        "strictPropertyInitialization": false,
+        "typeRoots": ["node_modules/@types", "typings"],
+        "lib": ["dom", "es5", "esnext"],
+        "jsx": "react"
     },
     "include": ["src/**/*"]
 }
